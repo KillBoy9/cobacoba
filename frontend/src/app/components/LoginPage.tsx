@@ -3,42 +3,39 @@
 import { useState, FormEvent } from 'react';
 import type { User } from '../page';
 
-const API = 'http://localhost:5000';
+// Akun demo — tidak terhubung ke database/API
+const DEMO_USERS: Record<string, User> = {
+  admin: { id: 1, username: 'admin', role: 'admin', name: 'Admin POS' },
+  kasir: { id: 2, username: 'kasir', role: 'kasir', name: 'Kasir POS' },
+};
+const DEMO_PASSWORDS: Record<string, string> = {
+  admin: 'admin123',
+  kasir: 'kasir123',
+};
 
 export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  async function handleLogin(user: string, pass: string) {
+  function doLogin(user: string, pass: string) {
     setError('');
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user, password: pass }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.message || 'Login gagal.'); return; }
-      onLogin(data.user);
-    } catch {
-      setError('Tidak dapat terhubung ke server.');
-    } finally {
-      setLoading(false);
+    const found = DEMO_USERS[user];
+    if (found && DEMO_PASSWORDS[user] === pass) {
+      onLogin(found);
+    } else {
+      setError('Username atau password tidak sesuai.');
     }
   }
 
-  async function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    await handleLogin(username, password);
+    doLogin(username, password);
   }
 
   function loginDemo(role: 'admin' | 'kasir') {
-    const credentials = role === 'admin' ? ['admin', 'admin123'] : ['kasir', 'kasir123'];
-    handleLogin(credentials[0], credentials[1]);
+    doLogin(role, DEMO_PASSWORDS[role]);
   }
 
   return (
@@ -94,7 +91,7 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
           <div className="form-heading">
             <span className="eyebrow">SELAMAT DATANG KEMBALI</span>
             <h2>Masuk ke akun Anda</h2>
-            <p>Gunakan kredensial yang diberikan admin untuk melanjutkan.</p>
+            <p>Masukkan kredensial atau gunakan akun demo di bawah.</p>
           </div>
 
           <form className="login-form" onSubmit={handleSubmit}>
@@ -135,18 +132,11 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
               </div>
             </label>
             {error && <p className="form-message">{error}</p>}
-            <button type="submit" className="primary-button login-button" disabled={loading}>
-              {loading ? (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite' }}><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity=".25"/><path d="M21 12a9 9 0 00-9-9"/></svg>
-                  Memproses...
-                </>
-              ) : (
-                <>
-                  Masuk
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </>
-              )}
+            <button type="submit" className="primary-button login-button">
+              Masuk
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
             </button>
           </form>
 
@@ -157,7 +147,6 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
               <button
                 type="button"
                 onClick={() => loginDemo('admin')}
-                disabled={loading}
                 style={{
                   flex: 1,
                   border: '1px solid #c5c0f0',
@@ -185,7 +174,6 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
               <button
                 type="button"
                 onClick={() => loginDemo('kasir')}
-                disabled={loading}
                 style={{
                   flex: 1,
                   border: '1px solid #c8e6c9',
