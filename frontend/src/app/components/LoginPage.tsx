@@ -12,15 +12,14 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleLogin(user: string, pass: string) {
     setError('');
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: user, password: pass }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || 'Login gagal.'); return; }
@@ -30,6 +29,16 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    await handleLogin(username, password);
+  }
+
+  function loginDemo(role: 'admin' | 'kasir') {
+    const credentials = role === 'admin' ? ['admin', 'admin123'] : ['kasir', 'kasir123'];
+    handleLogin(credentials[0], credentials[1]);
   }
 
   return (
@@ -142,8 +151,67 @@ export default function LoginPage({ onLogin }: { onLogin: (u: User) => void }) {
           </form>
 
           <div className="demo-account">
-            <span>AKUN DEMO</span>
-            <p><b>Admin:</b> admin / admin123 <i /> <b>Kasir:</b> kasir / kasir123</p>
+            <span>MASUK CEPAT DEMO</span>
+            <p style={{ marginBottom: 10 }}>Klik untuk langsung masuk tanpa mengisi form:</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => loginDemo('admin')}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  border: '1px solid #c5c0f0',
+                  borderRadius: 8,
+                  background: '#efedff',
+                  color: '#5a4ecc',
+                  padding: '9px 12px',
+                  fontWeight: 700,
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: '.15s',
+                }}
+                onMouseOver={e => (e.currentTarget.style.background = '#e2dfff')}
+                onMouseOut={e => (e.currentTarget.style.background = '#efedff')}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Login sebagai Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => loginDemo('kasir')}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  border: '1px solid #c8e6c9',
+                  borderRadius: 8,
+                  background: '#f1f8f1',
+                  color: '#2e7d32',
+                  padding: '9px 12px',
+                  fontWeight: 700,
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  transition: '.15s',
+                }}
+                onMouseOver={e => (e.currentTarget.style.background = '#e4f4e5')}
+                onMouseOut={e => (e.currentTarget.style.background = '#f1f8f1')}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Login sebagai Kasir
+              </button>
+            </div>
           </div>
         </div>
       </div>
